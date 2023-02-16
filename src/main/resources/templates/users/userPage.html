@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en"  xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <meta charset="UTF-8">
+    <title>User Page</title>
+</head>
+<body>
+Id
+<p th:text="${userInfo.getId()}">id</p>
+UserName
+<p th:text="${userInfo.getUsername()}">username</p>
+Email
+<p th:text="${userInfo.getEmail()}">email</p>
+Password
+<p th:text="${userInfo.getPassword()}">password</p>
+
+<a th:href="@{/logout}" class="btn">Logout</a>
+</body>
+</html>
