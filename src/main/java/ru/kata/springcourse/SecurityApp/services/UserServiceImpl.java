@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kata.springcourse.SecurityApp.entities.Role;
 import ru.kata.springcourse.SecurityApp.entities.User;
@@ -18,8 +19,8 @@ import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService, UserDetailsService {
-    final UserRepository userRepository;
-    final RoleRepository roleRepository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
@@ -31,7 +32,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, readOnly = true, noRollbackFor = Exception.class)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<User> user = userRepository.findByUsername(username);
         for (Role role : user.get().getRoles()) {
@@ -44,6 +45,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User findUserById(long id) {
         Optional<User> user = userRepository.findById(id);
 
@@ -51,6 +53,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> allUsers() {
         return userRepository.findAll();
     }
@@ -73,6 +76,30 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     @Transactional
+    public void saveRole(Role role) {
+        if (roleRepository.findByName(role.getName()).isEmpty()) {
+            roleRepository.save(role);
+        } else {
+            role = roleRepository.findByName(role.getName()).get();
+        }
+    }
+
+    @Override
+    public void saveUserRole(User user, Role role) {
+        Role role1 = roleRepository.findByName(role.getName()).get();
+        user.setRoles(Collections.singleton(role1));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
+
+    }
+
+    @Override
+    public List<Role> getAllRoles() {
+        return roleRepository.findAll();
+    }
+
+    @Override
+    @Transactional
     public boolean deleteUserById(long id) {
         if (userRepository.findById(id).isPresent()) {
             userRepository.deleteById(id);
@@ -83,8 +110,12 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     @Transactional
-    public void updateUserById(long id, User user) {
-        user.setRoles(userRepository.findById(user.getId()).get().getRoles());
+    public void updateUser(User user) {
+        if (user.getPassword().isEmpty()) {
+            user.setPassword(userRepository.findById(user.getId()).get().getPassword());
+        } else {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
         userRepository.save(user);
     }
 }
