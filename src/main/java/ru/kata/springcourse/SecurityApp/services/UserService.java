@@ -9,11 +9,10 @@ import java.util.List;
 public interface UserService extends UserDetailsService {
     User findUserById(long id);
 
-    List<User> allUsers();
-
     boolean saveUser(User user);
 
-    boolean deleteUserById(long id);
+    void deleteUserById(long id);
+
 
     void updateUser(User user);
 
@@ -22,4 +21,6 @@ public interface UserService extends UserDetailsService {
     void saveUserRole(User user, Role role);
 
     List<Role> getAllRoles();
+
+    List<User> getListOfUsers();
 }

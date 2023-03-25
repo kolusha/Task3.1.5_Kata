@@ -1,5 +1,7 @@
 package ru.kata.springcourse.SecurityApp.entities;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.persistence.*;
@@ -7,12 +9,13 @@ import java.util.Set;
 
 @Entity
 @Table(name = "roles")
+@JsonIdentityInfo(generator= ObjectIdGenerators.IntSequenceGenerator.class, property="@roleId")
 public class Role implements GrantedAuthority {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private long id;
-    @Column(name = "name")
+    @Column(name = "name", unique = true)
     private String name;
     @ManyToMany(mappedBy = "roles")
     private Set<User> users;
@@ -52,7 +55,7 @@ public class Role implements GrantedAuthority {
     }
 
     public String getName() {
-        return name;
+        return name.split("_")[1];
     }
 
     public void setName(String name) {

@@ -1,77 +1,83 @@
 package ru.kata.springcourse.SecurityApp.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 import ru.kata.springcourse.SecurityApp.entities.Role;
 import ru.kata.springcourse.SecurityApp.entities.User;
 import ru.kata.springcourse.SecurityApp.services.UserService;
+import ru.kata.springcourse.SecurityApp.util.MapperUserRole;
 
+import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-@Controller
+@RestController
 @RequestMapping("/admin")
 public class AdminController {
 
     private final UserService userService;
 
+    private final MapperUserRole mapperUserRole;
+
     @Autowired
-    public AdminController(UserService userService) {
+    public AdminController(UserService userService, MapperUserRole mapperUserRole) {
         this.userService = userService;
+        this.mapperUserRole = mapperUserRole;
+    }
+
+    @GetMapping("/users")
+    public ModelAndView getAllUsers() {
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName("allUsers");
+
+        return modelAndView;
     }
 
     @GetMapping()
-    public String getAllUsers(Model model) {
-        model.addAttribute("allUsers", userService.allUsers());
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User admin = (User) authentication.getPrincipal();
-        User user = new User();
-        model.addAttribute("admin", admin);
-        model.addAttribute("user", user);
-        List<Role> roleList = userService.getAllRoles();
-        for (Role role : roleList) {
-            System.out.println(role.getAuthority());
-        }
-        model.addAttribute("roles", roleList);
-        return "/users/allUsers";
+    public ResponseEntity<Map<String ,Object>> printAllUsers() {
+        Map<String, Object> getMap = new HashMap<>();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User admin = (User) auth.getPrincipal();
+        List<Role> roles = userService.getAllRoles();
 
+        List<User> users = userService.getListOfUsers();
+
+        getMap.put("admin",admin);
+        getMap.put("users",users);
+        getMap.put("roles", roles);
+        return new ResponseEntity<>(getMap, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public String showUserById(@PathVariable("id") long id, Model model) {
-        model.addAttribute("user", userService.findUserById(id));
-        return "/users/show";
-    }
+    public ResponseEntity<User> showUserById(@PathVariable("id") long id) {
 
-    @GetMapping("/new")
-    public String newUser(@ModelAttribute("user") User user) {
-        return "users/new";
+       return new ResponseEntity<>(userService.findUserById(id), HttpStatus.OK);
     }
 
     @PostMapping()
-    public String create(@ModelAttribute("user") User user) {
+    public ResponseEntity<Map<String, Object>> create(@RequestBody @Valid User user) {
         userService.saveUser(user);
-        return "redirect:/admin";
-    }
 
-    @GetMapping("/{id}/edit")
-    public String edit(Model model, @PathVariable("id") long id) {
-        model.addAttribute("user", userService.findUserById(id));
-        return "/users/edit";
+        return printAllUsers();
     }
 
     @PatchMapping("/{id}")
-    public String update(@ModelAttribute("user") User user) {
+    public ResponseEntity<Map<String, Object>> update(@RequestBody User user) {
         userService.updateUser(user);
-        return "redirect:/admin";
+
+        return printAllUsers();
     }
 
     @DeleteMapping("/{id}")
-    public String delete(@PathVariable("id") long id) {
+    public ResponseEntity<Map<String, Object>> delete (@PathVariable long id) {
         userService.deleteUserById(id);
-        return "redirect:/admin";
+
+        return printAllUsers();
     }
 }

@@ -47,16 +47,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public User findUserById(long id) {
-        Optional<User> user = userRepository.findById(id);
-
-        return user.orElse(new User());
+        return userRepository.findById(id).get();
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<User> allUsers() {
-        return userRepository.findAll();
-    }
 
     @Override
     @Transactional
@@ -66,8 +59,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             return false;
         }
 
-        Role role = roleRepository.findByName("ROLE_USER").get();
-        user.setRoles(Collections.singleton(role));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
         return true;
@@ -94,18 +85,15 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Role> getAllRoles() {
         return roleRepository.findAll();
     }
 
     @Override
     @Transactional
-    public boolean deleteUserById(long id) {
-        if (userRepository.findById(id).isPresent()) {
-            userRepository.deleteById(id);
-            return true;
-        }
-        return false;
+    public void deleteUserById(long id) {
+       userRepository.deleteById(id);
     }
 
     @Override
@@ -117,5 +105,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
         userRepository.save(user);
+    }
+
+    @Override
+    public List<User> getListOfUsers() {
+        return userRepository.findAll();
     }
 }
