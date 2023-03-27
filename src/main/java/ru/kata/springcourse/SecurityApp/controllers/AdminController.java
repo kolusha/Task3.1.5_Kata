@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import ru.kata.springcourse.SecurityApp.dto.UserDTO;
 import ru.kata.springcourse.SecurityApp.entities.Role;
 import ru.kata.springcourse.SecurityApp.entities.User;
 import ru.kata.springcourse.SecurityApp.services.UserService;
@@ -16,6 +17,7 @@ import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/admin")
@@ -43,10 +45,11 @@ public class AdminController {
     public ResponseEntity<Map<String ,Object>> printAllUsers() {
         Map<String, Object> getMap = new HashMap<>();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User admin = (User) auth.getPrincipal();
+        UserDTO admin = mapperUserRole.convertToUserDTO((User) auth.getPrincipal());
         List<Role> roles = userService.getAllRoles();
 
-        List<User> users = userService.getListOfUsers();
+        List<UserDTO> users = userService.getListOfUsers().stream()
+                .map(mapperUserRole::convertToUserDTO).collect(Collectors.toList());
 
         getMap.put("admin",admin);
         getMap.put("users",users);
@@ -55,9 +58,9 @@ public class AdminController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> showUserById(@PathVariable("id") long id) {
+    public ResponseEntity<UserDTO> showUserById(@PathVariable("id") long id) {
 
-       return new ResponseEntity<>(userService.findUserById(id), HttpStatus.OK);
+       return new ResponseEntity<>(mapperUserRole.convertToUserDTO(userService.findUserById(id)), HttpStatus.OK);
     }
 
     @PostMapping()
@@ -68,8 +71,8 @@ public class AdminController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> update(@RequestBody User user) {
-        userService.updateUser(user);
+    public ResponseEntity<Map<String, Object>> update(@RequestBody UserDTO user) {
+        userService.updateUser(mapperUserRole.convertToUser(user));
 
         return printAllUsers();
     }

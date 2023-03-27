@@ -34,7 +34,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     @Transactional(propagation = Propagation.REQUIRED, readOnly = true, noRollbackFor = Exception.class)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<User> user = userRepository.findByUsername(username);
+        Optional<User> user = userRepository.findByEmail(username);
         for (Role role : user.get().getRoles()) {
             System.out.println("Name of role is: " + role.getName());
         }
@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     @Transactional
     public boolean saveUser(User user) {
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+        if (userRepository.findByEmail(user.getUsername()).isPresent()) {
             System.out.println("Пользователь с таким именем уже существует!");
             return false;
         }

@@ -12,12 +12,6 @@ import ru.kata.springcourse.SecurityApp.repositories.UserRepository;
 
 @Controller
 public class UserController {
-    final UserRepository userRepository;
-
-    @Autowired
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @GetMapping("/user")
     public String userInfo(Model model) {
