@@ -64,8 +64,8 @@ public class AdminController {
     }
 
     @PostMapping()
-    public ResponseEntity<Map<String, Object>> create(@RequestBody @Valid User user) {
-        userService.saveUser(user);
+    public ResponseEntity<Map<String, Object>> create(@RequestBody @Valid User userDTO) {
+        userService.saveUser(userDTO);
 
         return printAllUsers();
     }

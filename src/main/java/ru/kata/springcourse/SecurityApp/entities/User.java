@@ -7,7 +7,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.util.Collection;
 import java.util.Set;
@@ -19,7 +18,7 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private long id;
+    private Long id;
     @Size(min = 2, max = 100, message = "Имя должно быть от 2 до 100 символов длиной")
     @Column(name = "username")
     private String username;
@@ -46,7 +45,7 @@ public class User implements UserDetails {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -59,7 +58,7 @@ public class User implements UserDetails {
         this.roles = roles;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
